@@ -1,5 +1,5 @@
 import * as dotenv from "dotenv";
-import { executeTransactions, generateTransactions } from "./executePayments";
+import { executeRawTransactions, generateRawTransactions } from "./executePayments";
 import { PublicKey, Connection } from "@solana/web3.js";
 import { loadKeypairFromFile } from "./utils";
 
@@ -24,21 +24,23 @@ async function main() {
 
   const connection = new Connection(RPC_URL);
   const fundingPrivateKey = loadKeypairFromFile(FUNDING_WALLET_PATH);
-  const fundingWallet = fundingPrivateKey.publicKey;
 
   const destinationWallet = new PublicKey(DESTINATION_WALLET_PUBKEY);
 
-  const transactionList = generateTransactions(
+  console.log(`Generating ${IX_BATCH_SIZE} transfer instructions per transaction...`);
+  const rawTransactionList = await generateRawTransactions(
     IX_BATCH_SIZE,
-    fundingWallet,
-    destinationWallet
+    fundingPrivateKey,
+    destinationWallet,
+    connection
   );
 
-  await executeTransactions(
+  console.log(`Generated ${rawTransactionList.length} raw transactions`);
+  console.log(`Transaction sizes: ${rawTransactionList.map(tx => tx.length)} bytes`);
+
+  await executeRawTransactions(
     connection,
-    transactionList,
-    fundingWallet,
-    fundingPrivateKey.secretKey
+    rawTransactionList
   );
 }
 
