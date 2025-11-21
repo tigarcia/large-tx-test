@@ -171,48 +171,6 @@ export async function generateRawTransactions(
   return rawPaymentBatches;
 }
 
-/**
- * Create the Solana transactions to be executed on chain
- *
- * @param batchSize The number of transfer instructions per TX
- * @param payments A list of pubkeys and lamport amounts to be paid
- * @param fundingWallet The pubkey of the wallet that will be used for funding
- *                      the payments
- * @returns A list of transactions
- */
-export function generateTransactions(
-  batchSize: number,
-  fundingWallet: PublicKey,
-  destinationWallet: PublicKey
-): Transaction[] {
-  let paymentBatches: Transaction[] = [];
-
-  let allInstructions: any[] = [];
-  for (let i = 0; i < batchSize; i++) {
-    allInstructions.push(
-      SystemProgram.transfer({
-        fromPubkey: fundingWallet,
-        toPubkey: destinationWallet,
-        lamports: 10_000,
-      })
-    );
-  }
-
-  const numTransactions = Math.ceil(allInstructions.length / batchSize);
-  for (let i = 0; i < numTransactions; i++) {
-    let tx = new Transaction();
-    let lowerIndex = i * batchSize;
-    let upperIndex = (i + 1) * batchSize;
-    for (let j = lowerIndex; j < upperIndex; j++) {
-      if (allInstructions[j]) {
-        tx.add(allInstructions[j]);
-      }
-    }
-    paymentBatches.push(tx);
-  }
-
-  return paymentBatches;
-}
 
 /**
  * Execute a list of raw transaction buffers on chain
