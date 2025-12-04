@@ -32,19 +32,23 @@ async function main() {
   );
   const txList = await generateTransactions(
     IX_BATCH_SIZE,
-    fundingPrivateKey,
+    fundingPrivateKey.publicKey,
     destinationWallet
   );
 
   console.log(`Generated ${txList.length} raw transactions`);
-  console.log(`Transaction sizes: ${txList.map((tx) => tx.length)} bytes`);
+  console.log(
+    `Transaction sizes: ${txList.map((tx) => tx.serialize().length)} bytes`
+  );
 
-  await executeTransactions(
+  const results = await executeTransactions(
     connection,
     txList,
     fundingPrivateKey.publicKey,
-    fundingPrivateKey.secretKey
+    fundingPrivateKey.secretKey as Uint8Array
   );
+
+  console.log(`Results: ${results.map((result) => result.status)}`);
 }
 
 main();
