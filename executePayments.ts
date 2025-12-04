@@ -9,11 +9,12 @@ import {
   TransactionInstruction,
 } from "@solana/web3.js";
 
-export function generateTransactions(
+export async function generateTransactions(
   batchSize: number,
   fundingWallet: PublicKey,
-  destinationWallet: PublicKey
-): Transaction[] {
+  destinationWallet: PublicKey,
+  connection: Connection
+): Promise<Transaction[]> {
   let paymentBatches: Transaction[] = [];
 
   let allInstructions: TransactionInstruction[] = [];
@@ -28,8 +29,12 @@ export function generateTransactions(
   }
 
   const numTransactions = Math.ceil(allInstructions.length / batchSize);
+  const { blockhash } = await connection.getLatestBlockhash();
+
   for (let i = 0; i < numTransactions; i++) {
     let tx = new Transaction();
+    tx.feePayer = fundingWallet;
+    tx.recentBlockhash = blockhash;
     let lowerIndex = i * batchSize;
     let upperIndex = (i + 1) * batchSize;
     for (let j = lowerIndex; j < upperIndex; j++) {

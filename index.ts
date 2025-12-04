@@ -33,12 +33,15 @@ async function main() {
   const txList = await generateTransactions(
     IX_BATCH_SIZE,
     fundingPrivateKey.publicKey,
-    destinationWallet
+    destinationWallet,
+    connection
   );
 
   console.log(`Generated ${txList.length} raw transactions`);
   console.log(
-    `Transaction sizes: ${txList.map((tx) => tx.serialize().length)} bytes`
+    `Transaction sizes: ${txList.map(
+      (tx) => tx.serializeMessage().length
+    )} bytes`
   );
 
   const results = await executeTransactions(
